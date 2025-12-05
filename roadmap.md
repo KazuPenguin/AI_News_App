@@ -8,7 +8,7 @@ APIとデータパイプラインを先に完成させ、その後Flutterアプ�
 | フェーズ | 期間 | テーマ | 主なゴール |
 | :--- | :--- | :--- | :--- |
 | **Phase 1** | Week 1-2 | **Backend Foundation & Core** | DB構築、Arxiv論文収集・要約APIの完成 |
-| **Phase 2** | Week 3 | **Backend Expansion** | SNS/ニュース/金融データの収集・分析API完成 |
+| **Phase 2** | Week 3 | **Backend Expansion** | Web/ニュース/金融データの収集・分析API完成 |
 | **Phase 3** | Week 4-5 | **Mobile App Implementation** | Flutterアプリ構築、全APIとの連携、UI実装 |
 | **Phase 4** | Week 6 | **Polish & Deploy** | 通知機能、全体テスト、本番デプロイ |
 
@@ -27,14 +27,14 @@ APIとデータパイプラインを先に完成させ、その後Flutterアプ�
 - **Feature: Arxiv Insight**
     - [ ] Arxiv API クライアント実装
     - [ ] PDF取得 & PyMuPDFによる画像抽出処理
-    - [ ] OpenAI API (Vision) 連携 & プロンプトエンジニアリング
+    - [ ] OpenAI API (gpt-4o-mini / Vision) 連携 & プロンプトエンジニアリング
     - [ ] 論文データ保存・取得API (CRUD)
 
 ### Phase 2: Backend Expansion (Week 3)
 **目的**: 残りのデータソース（トレンド、ビジネス、金融）のAPIを一気に作り切る。
 
 - **Feature: Trend & Business**
-    - [ ] SNSデータ収集 (Tweepy/Serper)
+    - [ ] Webトレンド収集 (Serper Dev API)
     - [ ] ニューススクレイピング (BeautifulSoup/Firecrawl)
     - [ ] 感情分析・重要度スコアリングロジック (LangChain)
     - [ ] トレンド/ニュース取得API

@@ -37,18 +37,18 @@ BFF (Backend for Frontend) パターンを採用し、クライアントとサ�
     - **ライブラリ**: PyMuPDF (fitz) または pdf2image。
     - **処理**: PDF内の図表（Figure 1など）を座標指定で切り出し、画像ファイルとして保存。
 - **マルチモーダル要約**:
-    - **LLM**: OpenAI API (gpt-4o) 等のVision対応モデル。
+    - **LLM**: OpenAI API (gpt-4o-mini) 等のVision対応モデル。
     - **処理**: テキスト要約に加え、「抽出した図が何を表しているか」の解説を生成。
 - **UI要件 (2段階表示)**:
     - **Level 1 (フィード)**: サムネイル画像（アーキテクチャ図）＋タイトル＋1行要約。
     - **Level 2 (詳細)**: 背景、新規性、手法、結果の構造化要約＋画像ギャラリー。
 
-### 3.2 📢 トレンドモニタリング機能 (X/SNS)
-SNS上の「ノイズ」を除去し、重要な議論や速報のみを抽出する。
+### 3.2 📢 Webトレンドモニタリング機能
+Web上の最新トレンドや議論を収集し、重要なトピックを抽出する。
 
-- **データ取得**: Tweepy (Basic API) または Serper Dev API (検索ベース)。
+- **データ取得**: Serper Dev API (Google Search Results)。
 - **フィルタリング**:
-    - **キーワード**: #LLM, #GenerativeAI, 特定のアカウントリスト。
+    - **キーワード**: "LLM", "Generative AI", "AI News" などの検索クエリ。
 - **感情分析 (Sentiment Analysis)**:
     - LangChainを用い、単なる宣伝やスパムを除外。「技術的議論」や「速報」を優先スコアリング。
 
@@ -83,7 +83,7 @@ Supabase (PostgreSQL) を利用。非構造化データへの対応と将来的�
 | テーブル名 | 概要 | 主要カラム |
 | :--- | :--- | :--- |
 | **users** | ユーザー管理 | `uuid`, `email`, `preferences` (興味タグ) |
-| **articles** | 記事マスター | `id`, `category` (arxiv/x/finance/biz), `title`, `summary`, `published_at`, `source_url` |
+| **articles** | 記事マスター | `id`, `category` (arxiv/web/finance/biz), `title`, `summary`, `published_at`, `source_url` |
 | **article_images** | 記事画像 | `id`, `article_id`, `image_url`, `caption` (図の解説) |
 | **embeddings** | ベクトルデータ | `id`, `article_id`, `vector` (記事内容の埋め込み表現) |
 | **market_data** | 金融データ | `ticker`, `date`, `close_price`, `volume` |
@@ -107,7 +107,7 @@ Supabase (PostgreSQL) を利用。非構造化データへの対応と将来的�
 | :--- | :--- | :--- |
 | **Mobile** | Flutter (Dart)<br>Riverpod (状態管理), Dio (通信), GoRouter (ルーティング), fl_chart (グラフ) | モダンなアプリ開発、状態管理、チャート描画 |
 | **Backend** | FastAPI (Python)<br>Pydantic (型定義), Asyncio (非同期処理) | 高速なAPIサーバー構築、非同期処理 |
-| **LLM/AI** | LangChain<br>OpenAI API / Anthropic API, Prompt Engineering, Function Calling | LLMオーケストレーション、プロンプトエンジニアリング |
+| **LLM/AI** | LangChain<br>OpenAI API (gpt-4o-mini) / Anthropic API, Prompt Engineering, Function Calling | LLMオーケストレーション、プロンプトエンジニアリング |
 | **PDF/Data** | PyMuPDF / yfinance | 非構造化データ処理, 金融データハンドリング |
 | **DB/Auth** | Supabase<br>PostgreSQL, pgvector, Authentication | ベクトル検索、認証基盤 |
 | **DevOps** | Docker / GitHub Actions | コンテナ化, CI/CDパイプライン |
