@@ -1,0 +1,52 @@
+%%{init: {'theme': 'neutral', 'flowchart': {'curve': 'monotoneY'}}}%%
+graph TB
+    classDef blue fill:#e3f2fd,stroke:#1565c0,color:#0d47a1;
+    classDef orange fill:#fff3e0,stroke:#ef6c00,color:#e65100;
+    classDef green fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20;
+    classDef purple fill:#f3e5f5,stroke:#7b1fa2,color:#4a148c;
+    classDef red fill:#ffebee,stroke:#c62828,color:#b71c1c;
+
+    subgraph NS["🌐 NetworkStack"]
+        direction TB
+        VPC["VPC 10.0.0.0/16　2 AZ 構成"]:::blue
+        PubSub["Public Subnet ×2"]:::blue
+        PriSub["Private Subnet ×2"]:::blue
+    end
+    class NS blue
+
+    subgraph DS["🗄️ DatabaseStack"]
+        direction TB
+        RDS["RDS PostgreSQL 16"]:::orange
+        SM["Secrets Manager"]:::orange
+        PGV["pgvector 拡張"]:::orange
+    end
+    class DS orange
+
+    subgraph SS["📦 StorageStack"]
+        direction TB
+        S3["S3 バケット"]:::green
+        CF["CloudFront"]:::green
+    end
+    class SS green
+
+    subgraph AS["🔐 AuthStack"]
+        direction TB
+        UP["Cognito User Pool"]:::purple
+        Clients["App Clients & Providers"]:::purple
+    end
+    class AS purple
+
+    subgraph BS["⏰ BatchStack"]
+        direction TB
+        BL["Batch Lambda"]:::red
+        EB["EventBridge Rule"]:::red
+    end
+    class BS red
+
+    subgraph APS["🚀 ApiStack"]
+        direction TB
+        APIGW["API Gateway"]:::red
+        AL["API Lambda"]:::red
+        CAuth["Cognito Authorizer"]:::red
+    end
+    class APS red

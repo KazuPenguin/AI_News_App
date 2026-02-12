@@ -1,0 +1,54 @@
+%%{init: {'theme': 'neutral', 'flowchart': {'curve': 'monotoneY'}}}%%
+flowchart TB
+    %% ノード設定
+    classDef green fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20;
+    classDef orange fill:#fff3e0,stroke:#ef6c00,color:#e65100;
+    classDef blue fill:#e3f2fd,stroke:#1565c0,color:#0d47a1;
+    classDef red fill:#ffebee,stroke:#c62828,color:#b71c1c;
+
+    subgraph Phase1 [Input: リソース取得]
+        direction TB
+        L3([Start: L3通過論文]):::green
+        PDF[PDF ダウンロード]:::green
+        Meta[/メタデータ取得/]:::green
+    end
+
+    %% 処理分岐を明確にするための不可視ノード
+    fork(( )) 
+    style fork width:0px
+
+    subgraph Phase2 [Process A: コンテンツ解析]
+        direction TB
+        Prompt[プロンプト構築]:::orange
+        Gemini[[Gemini 2.0 Flash処理]]:::orange
+        Valid{バリデーション}:::orange
+    end
+
+    subgraph Phase3 [Process B: 図表抽出]
+        direction TB
+        PyMu[PyMuPDF 画像抽出]:::red
+        S3(S3 アップロード):::red
+    end
+
+    subgraph Phase4 [Output: データベース保存]
+        direction TB
+        DB_Main[("Papers Table")]:::blue
+        DB_Sub[("Paper Figures Table")]:::blue
+    end
+
+    %% フロー接続
+    L3 --> PDF & Meta
+    PDF --- fork
+    Meta --- fork
+    
+    fork --> Prompt
+    fork --> PyMu
+
+    Prompt --> Gemini --> Valid --> DB_Main
+    PyMu --> S3 --> DB_Sub
+
+    %% スタイル調整
+    style Phase1 fill:#fff,stroke:#2e7d32,stroke-dasharray: 5 5
+    style Phase2 fill:#fff,stroke:#ef6c00,stroke-dasharray: 5 5
+    style Phase3 fill:#fff,stroke:#c62828,stroke-dasharray: 5 5
+    style Phase4 fill:#fff,stroke:#1565c0,stroke-dasharray: 5 5

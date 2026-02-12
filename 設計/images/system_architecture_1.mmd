@@ -1,0 +1,81 @@
+%%{init: {'theme': 'neutral', 'flowchart': {'curve': 'monotoneY'}}}%%
+flowchart TB
+    %% ノード設定
+    classDef green fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20;
+    classDef orange fill:#fff3e0,stroke:#ef6c00,color:#e65100;
+    classDef blue fill:#e3f2fd,stroke:#1565c0,color:#0d47a1;
+    classDef red fill:#ffebee,stroke:#c62828,color:#b71c1c;
+    classDef purple fill:#f3e5f5,stroke:#7b1fa2,color:#4a148c;
+    classDef gray fill:#f5f5f5,stroke:#616161,color:#212121;
+
+    subgraph L1["Level 1: データ収集 (コスト: $0)"]
+        direction TB
+        arxiv["arXiv API"]:::green
+        q1["Cat1: 基盤モデル"]
+        q2["Cat2: 学習・調整"]
+        q3["Cat3: エンジニアリング"]
+        q4["Cat4: インフラ"]
+        q5["Cat5: 評価・安全性"]
+        q6["Cat6: 規制・社会"]
+        dedup["重複排除"]:::gray
+
+        arxiv --> q1 & q2 & q3 & q4 & q5 & q6
+        q1 & q2 & q3 & q4 & q5 & q6 --> dedup
+    end
+    class L1 blue
+
+    subgraph L2["Level 2: ベクトル選別 (コスト: ~$0.04/月)"]
+        direction TB
+        embed["Embedding生成"]:::orange
+        anchors["アンカーベクトル 6本"]:::orange
+        cosine["コサイン類似度計算"]:::orange
+        scoring["重要度スコア算出"]:::orange
+
+        embed --> cosine
+        anchors --> cosine
+        cosine --> scoring
+    end
+    class L2 blue
+
+    subgraph L3["Level 3: LLM最終判定 (コスト: ~$0.40/月)"]
+        direction TB
+        gemini["Gemini 2.0 Flash"]:::purple
+        validate["Schema バリデーション"]:::purple
+        judge{is_relevant?}:::purple
+
+        gemini --> validate --> judge
+    end
+    class L3 blue
+
+    subgraph FigExt["Post-L3: 図表抽出"]
+        direction TB
+        pdf_dl["PDFダウンロード"]:::red
+        extract["PyMuPDF 図表抽出"]:::red
+        s3up["S3アップロード"]:::red
+
+        pdf_dl --> extract --> s3up
+    end
+    class FigExt blue
+
+    subgraph Storage["データベース"]
+        direction TB
+        papers[("PostgreSQL\n(pgvector)")]:::blue
+    end
+
+    subgraph App["アプリ配信"]
+        direction TB
+        detail["詳細解説生成"]:::purple
+        mobile["React Nativeアプリ"]:::green
+
+        detail --> mobile
+    end
+
+    dedup -->|"100-250件/日"| L2
+    scoring -->|"50-100件/日"| L3
+    judge -->|"✅ true"| FigExt
+    judge -->|"❌ false"| reject["除外"]:::gray
+    s3up --> App
+
+    L2 <--> Storage
+    L3 --> Storage
+    FigExt --> Storage

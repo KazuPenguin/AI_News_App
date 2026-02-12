@@ -1,0 +1,45 @@
+%%{init: {'theme': 'neutral', 'flowchart': {'curve': 'monotoneY'}}}%%
+flowchart TB
+    %% ノード設定
+    classDef green fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20;
+    classDef orange fill:#fff3e0,stroke:#ef6c00,color:#e65100;
+    classDef blue fill:#e3f2fd,stroke:#1565c0,color:#0d47a1;
+    classDef red fill:#ffebee,stroke:#c62828,color:#b71c1c;
+
+    subgraph Internet["インターネット (パブリック)"]
+        direction TB
+        user["ユーザー端末　React Native"]:::green
+        arxiv_api["arXiv API"]:::green
+    end
+
+    subgraph Edge["エッジ層 (AWS)"]
+        cf["CloudFront　WAF + TLS 1.3"]:::blue
+        cognito["Cognito User Pool　JWT発行"]:::orange
+    end
+
+    subgraph Auth["認証境界 ── JWT検証ライン ──"]
+        apigw["API Gateway　Cognito Authorizer"]:::orange
+    end
+
+    subgraph Private["VPC プライベートサブネット"]
+        lambda["Lambda　API Handler"]:::blue
+        batch["Lambda / ECS　バッチ処理"]:::blue
+        rds[("RDS PostgreSQL　pgvector")]:::red
+        sm["Secrets Manager　APIキー保管"]:::red
+    end
+
+    subgraph ExtAPI["外部API (TLS)"]
+        openai["OpenAI API"]:::green
+        gemini["Google AI Studio"]:::green
+    end
+
+    user -->|"HTTPS　(TLS 1.3)"| cf --> apigw
+    user -->|"OAuth 2.0　PKCE"| cognito
+    cognito -->|"JWT"| apigw
+    apigw -->|"認証済みリクエスト"| lambda
+    lambda -->|"VPC内接続　IAMロール"| rds
+    batch -->|"VPC内接続"| rds
+    batch -->|"APIキー取得"| sm
+    batch -->|"TLS"| arxiv_api
+    batch -->|"TLS + APIキー"| openai
+    batch -->|"TLS + APIキー"| gemini

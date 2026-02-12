@@ -1,0 +1,52 @@
+%%{init: {'theme': 'neutral'}}%%
+sequenceDiagram
+    participant Scheduler as EventBridge<br/>(JST 11:00)
+    participant L1 as L1: arXiv API
+    participant DB as PostgreSQL<br/>+ pgvector
+    participant Embed as OpenAI<br/>Embedding API
+    participant L2 as L2: ベクトル選別
+    participant LLM as Gemini 2.0 Flash
+    participant L3 as L3: LLM判定
+
+    Scheduler->>L1: バッチ起動
+    Note over L1: 6クエリ × ページング<br/>~60秒
+
+    loop 6カテゴリ
+        L1->>L1: arXiv API クエリ実行
+        L1->>L1: XML パース
+    end
+
+    L1->>L1: 重複排除 (arxiv_id)
+    L1->>DB: INSERT papers (100-250件)
+
+    L1->>Embed: Title + Abstract 送信
+    Embed-->>L1: ベクトル (1536次元)
+    L1->>DB: UPDATE embedding
+
+    L2->>DB: 未処理論文 + アンカー取得
+    L2->>L2: コサイン類似度計算 (6本)
+    L2->>L2: 重要度スコア算出
+    L2->>DB: UPDATE L2結果
+
+    Note over L2: 閾値 0.40 で選別<br/>50-100件通過
+
+    loop L2通過論文 (5並列)
+        L3->>LLM: プロンプト送信
+        LLM-->>L3: JSON レスポンス
+        L3->>L3: Schema バリデーション
+        L3->>DB: UPDATE L3結果
+    end
+
+    Note over L3: is_relevant=true<br/>10-30件
+
+    participant FE as Post-L3: 図表抽出
+    participant S3 as S3
+
+    loop is_relevant=trueの論文
+        FE->>FE: PDFダウンロード (arXiv)
+        FE->>FE: PyMuPDFで図表抽出
+        FE->>S3: 図表画像アップロード
+        FE->>DB: INSERT paper_figures
+    end
+
+    Note over FE: ~100-150枚/日<br/>→ CloudFront配信

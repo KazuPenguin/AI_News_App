@@ -1,0 +1,24 @@
+%%{init: {'theme': 'neutral', 'sequence': {'mirrorActors': false}}}%%
+sequenceDiagram
+    participant App as React Native
+    participant Cognito as Cognito User Pool
+    participant API as API Gateway
+    participant Lambda as Lambda
+
+    Note over App: 初回ログイン
+    App->>Cognito: signUp / signIn (email or Google/Apple)
+    Cognito-->>App: Authorization Code
+    App->>Cognito: Token Exchange (PKCE)
+    Cognito-->>App: ID Token + Access Token + Refresh Token
+
+    Note over App: API呼び出し
+    App->>API: GET /v1/papers<br/>Authorization: Bearer {id_token}
+    API->>Cognito: JWT検証
+    Cognito-->>API: ✅ Valid (sub, email, groups)
+    API->>Lambda: リクエスト転送 (user_id = sub)
+    Lambda-->>API: レスポンス
+    API-->>App: 200 OK + JSON
+
+    Note over App: トークン期限切れ
+    App->>Cognito: Refresh Token → 新 ID Token
+    Cognito-->>App: 新 ID Token

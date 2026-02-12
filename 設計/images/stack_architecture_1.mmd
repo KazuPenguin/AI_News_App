@@ -1,0 +1,25 @@
+%%{init: {'theme': 'neutral', 'flowchart': {'curve': 'monotoneY'}}}%%
+graph TD
+    classDef stack fill:#e3f2fd,stroke:#1565c0,color:#0d47a1,stroke-width:2px;
+    classDef dep fill:#ffebee,stroke:#c62828,color:#b71c1c,stroke-width:2px;
+
+    subgraph Independent["独立スタック"]
+        direction LR
+        Network["🌐 NetworkStack"]:::stack
+        Storage["💾 StorageStack"]:::stack
+        Auth["🔒 AuthStack"]:::stack
+    end
+
+    subgraph Dependent["依存スタック"]
+        direction LR
+        Database["🗄️ DatabaseStack"]:::dep
+        Batch["⚙️ BatchStack"]:::dep
+        Api["🚀 ApiStack"]:::dep
+    end
+
+    Network --> Database
+    Database --> Batch
+    Database --> Api
+    Auth --> Api
+    Storage --> Batch
+    Storage --> Api

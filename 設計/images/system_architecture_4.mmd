@@ -1,0 +1,58 @@
+%%{init: {'theme': 'neutral', 'flowchart': {'curve': 'monotoneY'}}}%%
+flowchart TB
+    %% ノード設定
+    classDef green fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20;
+    classDef orange fill:#fff3e0,stroke:#ef6c00,color:#e65100;
+    classDef blue fill:#e3f2fd,stroke:#1565c0,color:#0d47a1;
+    classDef red fill:#ffebee,stroke:#c62828,color:#b71c1c;
+    classDef purple fill:#f3e5f5,stroke:#7b1fa2,color:#4a148c;
+    classDef gray fill:#eceff1,stroke:#607d8b,color:#37474f;
+
+    subgraph Client["クライアント"]
+        mobile["React Native (Expo)"]:::green
+    end
+
+    subgraph AWS["AWS Cloud"]
+        subgraph Public["パブリック"]
+            cf["CloudFront"]:::blue
+            cognito["Cognito"]:::orange
+        end
+
+        subgraph Compute["コンピュート"]
+            apigw["API Gateway"]:::blue
+            lambda["Lambda API"]:::purple
+            batch["Batch Lambda"]:::purple
+        end
+
+        subgraph Data["データ"]
+            rds[("RDS PostgreSQL")]:::blue
+            s3["S3 Bucket"]:::blue
+        end
+
+        subgraph Observe["監視"]
+            cw["CloudWatch"]:::orange
+            eb["EventBridge"]:::orange
+        end
+    end
+
+    subgraph External["外部API"]
+        arxiv["arXiv API"]:::gray
+        openai["OpenAI API"]:::gray
+        gemini["Gemini API"]:::gray
+    end
+
+    mobile -->|HTTPS| cf --> apigw
+    mobile -->|Auth| cognito
+    apigw -->|JWT検証| cognito
+    apigw --> lambda --> rds
+    lambda --> s3
+
+    eb -->|"JST 11:00"| batch
+    batch --> arxiv
+    batch --> openai
+    batch --> gemini
+    batch --> rds
+    batch --> s3
+
+    batch --> cw
+    lambda --> cw

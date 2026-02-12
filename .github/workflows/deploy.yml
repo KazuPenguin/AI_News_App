@@ -1,0 +1,83 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "infra/**"
+      - "backend/**"
+
+permissions:
+  id-token: write # OIDC トークン取得に必要
+  contents: read
+
+env:
+  AWS_REGION: ap-northeast-1
+
+jobs:
+  # =========================================================================
+  # cdk diff — 変更差分を表示
+  # =========================================================================
+  cdk-diff:
+    name: CDK Diff
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: infra/package-lock.json
+
+      - run: npm ci
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: CDK diff
+        run: npx cdk diff --all 2>&1 | tee /tmp/cdk-diff.txt
+
+      - name: Post diff as summary
+        run: |
+          echo '## CDK Diff' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat /tmp/cdk-diff.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+  # =========================================================================
+  # deploy — 手動承認後にデプロイ
+  # =========================================================================
+  deploy:
+    name: CDK Deploy
+    needs: cdk-diff
+    runs-on: ubuntu-latest
+    environment: production # GitHub Environments で手動承認を設定
+    defaults:
+      run:
+        working-directory: infra
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: infra/package-lock.json
+
+      - run: npm ci
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: CDK deploy (全スタック)
+        run: npx cdk deploy --all --require-approval never

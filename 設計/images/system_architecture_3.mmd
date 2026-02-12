@@ -1,0 +1,73 @@
+%%{init: {'theme': 'neutral'}}%%
+erDiagram
+    papers {
+        serial id PK
+        varchar arxiv_id UK
+        text title
+        text abstract
+        text_array authors
+        text pdf_url
+        timestamptz published_at
+        vector embedding "1536次元"
+        integer best_category_id "L2結果"
+        float max_score "L2結果"
+        integer hit_count "L2結果"
+        float importance_score "L2結果"
+        jsonb all_scores "L2結果"
+        boolean is_relevant "L3結果"
+        integer category_id "L3結果"
+        text summary_ja "L3結果"
+        jsonb detail_review "L3結果"
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    anchors {
+        serial id PK
+        integer category_id UK
+        varchar category_name
+        text definition_text
+        vector embedding "1536次元"
+        timestamptz created_at
+    }
+
+    users {
+        serial id PK
+        varchar email UK
+        varchar auth_provider
+        varchar language
+        integer default_level
+        timestamptz created_at
+    }
+
+    bookmarks {
+        serial id PK
+        integer user_id FK
+        integer paper_id FK
+        timestamptz created_at
+    }
+
+    paper_figures {
+        serial id PK
+        integer paper_id FK
+        smallint figure_index
+        text s3_key
+        text s3_url
+        integer width
+        integer height
+        text caption
+    }
+
+    paper_views {
+        serial id PK
+        integer user_id FK
+        integer paper_id FK
+        timestamptz viewed_at
+    }
+
+    papers ||--o{ bookmarks : "ブックマーク"
+    users ||--o{ bookmarks : "お気に入り"
+    users ||--o{ paper_views : "閲覧履歴"
+    papers ||--o{ paper_views : "閲覧対象"
+    papers ||--o{ paper_figures : "論文図表"
+    anchors ||--o{ papers : "カテゴリ分類"

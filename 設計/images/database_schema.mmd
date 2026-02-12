@@ -1,0 +1,81 @@
+%%{init: {'theme': 'neutral'}}%%
+erDiagram
+    users {
+        serial id PK
+        varchar cognito_sub UK
+        varchar email UK
+        varchar display_name
+        varchar auth_provider
+        varchar language
+        smallint default_level
+        boolean is_active
+        timestamptz created_at
+    }
+
+    papers {
+        serial id PK
+        varchar arxiv_id UK
+        text title
+        text abstract
+        text_array authors
+        varchar primary_category
+        timestamptz published_at
+        vector embedding
+        integer best_category_id
+        float importance_score
+        boolean is_relevant
+        integer category_id
+        text summary_ja
+        jsonb detail_review
+    }
+
+    anchors {
+        serial id PK
+        integer category_id UK
+        varchar category_name
+        text definition_en
+        vector embedding
+        boolean is_active
+    }
+
+    bookmarks {
+        serial id PK
+        integer user_id FK
+        integer paper_id FK
+        timestamptz created_at
+    }
+
+    paper_views {
+        serial id PK
+        integer user_id FK
+        integer paper_id FK
+        timestamptz viewed_at
+    }
+
+    paper_figures {
+        serial id PK
+        integer paper_id FK
+        smallint figure_index
+        text s3_key
+        text s3_url
+        integer width
+        integer height
+        text caption
+    }
+
+    batch_logs {
+        serial id PK
+        date execution_date
+        integer l1_dedup_count
+        integer l2_passed_count
+        integer l3_relevant_count
+        integer figures_extracted
+        float l3_cost_usd
+    }
+
+    users ||--o{ bookmarks : "お気に入り"
+    users ||--o{ paper_views : "閲覧履歴"
+    papers ||--o{ bookmarks : "ブックマーク対象"
+    papers ||--o{ paper_views : "閲覧対象"
+    papers ||--o{ paper_figures : "論文図表"
+    anchors ||--o{ papers : "カテゴリ分類"

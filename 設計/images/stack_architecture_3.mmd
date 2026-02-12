@@ -1,0 +1,15 @@
+%%{init: {'theme': 'neutral', 'flowchart': {'curve': 'monotoneY'}}}%%
+flowchart LR
+    classDef blue fill:#e3f2fd,stroke:#1565c0,color:#0d47a1;
+    classDef orange fill:#fff3e0,stroke:#ef6c00,color:#e65100;
+    classDef green fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20;
+    classDef purple fill:#f3e5f5,stroke:#7b1fa2,color:#4a148c;
+    classDef red fill:#ffebee,stroke:#c62828,color:#b71c1c;
+
+    N["1️⃣ NetworkStack"]:::blue --> D["2️⃣ DatabaseStack"]:::orange
+    N --> S["3️⃣ StorageStack"]:::green
+    N --> A["4️⃣ AuthStack"]:::purple
+    D --> B["5️⃣ BatchStack"]:::red
+    S --> B
+    D --> API["6️⃣ ApiStack"]:::red
+    A --> API
