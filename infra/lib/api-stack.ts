@@ -39,11 +39,10 @@ export class ApiStack extends cdk.Stack {
         //   - api_specification.md: 12 エンドポイント
         //   - security_architecture.md §5.2: IAM ロール定義
         // =========================================================================
-        this.apiHandler = new lambda.Function(this, 'ApiHandler', {
-            runtime: lambda.Runtime.PYTHON_3_13,
-            handler: 'handler.main',
-            code: lambda.Code.fromAsset('../backend/api', {
-                bundling: undefined,
+        this.apiHandler = new lambda.DockerImageFunction(this, 'ApiHandler', {
+            // Docker Image Deployment
+            code: lambda.DockerImageCode.fromImageAsset('../backend', {
+                file: 'Dockerfile',
             }),
             memorySize: 512,
             timeout: cdk.Duration.seconds(30),

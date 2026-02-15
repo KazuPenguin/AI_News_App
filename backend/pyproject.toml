@@ -1,0 +1,41 @@
+[project]
+name = "ai-research-os-backend"
+version = "0.1.0"
+description = "Backend for AI Research OS"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.115.0",
+    "mangum>=0.17.0",
+    "pydantic>=2.10.0",
+    "requests>=2.32.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "mypy>=1.13.0",
+    "ruff>=0.8.0",
+    "types-requests>=2.31.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.3.0",
+    "mypy>=1.13.0",
+    "ruff>=0.8.0",
+    "types-requests>=2.31.0",
+]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
