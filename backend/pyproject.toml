@@ -2,7 +2,6 @@
 name = "ai-research-os-backend"
 version = "0.1.0"
 description = "Backend for AI Research OS"
-readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.115.0",
@@ -35,7 +34,11 @@ dev-dependencies = [
 python_version = "3.13"
 strict = true
 ignore_missing_imports = true
+explicit_package_bases = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["api", "batch"]
