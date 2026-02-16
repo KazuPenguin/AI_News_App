@@ -8,8 +8,10 @@ AI Research OS — Batch Lambda Handler (placeholder)
   図表抽出: PDF → S3 保管
 """
 
+from typing import Any, Dict
 
-def main(event, context):
+
+def main(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """EventBridge からトリガーされるエントリーポイント"""
     print("Batch handler invoked", event)
     return {"statusCode": 200, "body": "OK"}

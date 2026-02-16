@@ -13,8 +13,10 @@ REST API エンドポイント:
   GET    /health
 """
 
+from typing import Any, Dict
 
-def main(event, context):
+
+def main(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """API Gateway からプロキシ統合で呼ばれるエントリーポイント"""
     path = event.get("path", "/")
     method = event.get("httpMethod", "GET")
