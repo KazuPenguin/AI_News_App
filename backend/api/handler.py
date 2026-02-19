@@ -17,7 +17,7 @@ from typing import Any
 
 
 def main(event: dict[str, Any], context: Any) -> dict[str, Any]:
-    """API Gateway からプロキシ統合で呼ばれるエントリーポイント"""
+    """API Gateway からプロキシ統合で呼ばれるエントリーポイントテスト"""
     path = event.get("path", "/")
     method = event.get("httpMethod", "GET")
     print(f"API handler: {method} {path}")
