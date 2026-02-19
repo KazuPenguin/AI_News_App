@@ -10,8 +10,25 @@ AI Research OS — Batch Lambda Handler (placeholder)
 
 from typing import Any
 
+from utils.logger import CurationStats, log_curation_stats, logger, metrics
 
+
+@logger.inject_lambda_context(log_event=True)
+@metrics.log_metrics(capture_cold_start_metric=True)
 def main(event: dict[str, Any], context: Any) -> dict[str, Any]:
     """EventBridge からトリガーされるエントリーポイント"""
-    print("Batch handler invoked", event)
+    logger.info("Batch handler invoked")
+
+    # -----------------------------------------------------------------------
+    # TODO: 実際のキュレーション処理を実装後、以下のダミー値を置き換える
+    # -----------------------------------------------------------------------
+    stats = CurationStats(
+        l1_fetched=0,
+        l2_passed=0,
+        l2_filtered=0,
+        l3_passed=0,
+        l3_filtered=0,
+    )
+    log_curation_stats(stats)
+
     return {"statusCode": 200, "body": "OK"}

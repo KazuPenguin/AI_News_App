@@ -8,6 +8,7 @@ dependencies = [
     "mangum>=0.17.0",
     "pydantic>=2.10.0",
     "requests>=2.32.0",
+    "aws-lambda-powertools[all]>=3.0.0",
 ]
 
 [project.optional-dependencies]
@@ -41,4 +42,4 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["api", "batch"]
+packages = ["api", "batch", "utils"]
