@@ -9,14 +9,10 @@ Create Date: 2026-02-19 12:00:00.000000
 from collections.abc import Sequence
 
 from alembic import op
-
-
-# revision identifiers, used by Alembic.
 revision: str = "20260219_001"
-down_revision: Union[str, None] = None
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
-
+down_revision: str | None = None
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 def upgrade() -> None:
     # 1. Enable pgvector extension
@@ -76,7 +72,7 @@ def upgrade() -> None:
             created_at      TIMESTAMPTZ DEFAULT NOW(),
             updated_at      TIMESTAMPTZ DEFAULT NOW()
         );
-        COMMENT ON TABLE anchors IS 'ベクトル選別用アンカー定義';
+        COMMENT ON TABLE anchors IS 'ベクトル選別用アンカー定義。行追加でカテゴリ拡張可能';
     """)
 
     # users
@@ -86,7 +82,9 @@ def upgrade() -> None:
             cognito_sub     VARCHAR(36) UNIQUE NOT NULL,
             email           VARCHAR(255) UNIQUE NOT NULL,
             display_name    VARCHAR(100),
-            auth_provider   VARCHAR(20) NOT NULL CHECK (auth_provider IN ('email', 'google', 'apple')),
+            auth_provider   VARCHAR(20) NOT NULL CHECK (
+                                auth_provider IN ('email', 'google', 'apple')
+                            ),
             language        VARCHAR(5) DEFAULT 'ja' CHECK (language IN ('ja', 'en')),
             default_level   SMALLINT DEFAULT 2 CHECK (default_level BETWEEN 1 AND 3),
             is_active       BOOLEAN DEFAULT TRUE,
@@ -117,7 +115,7 @@ def upgrade() -> None:
             viewed_at   TIMESTAMPTZ DEFAULT NOW(),
             UNIQUE(user_id, paper_id)
         );
-        COMMENT ON TABLE paper_views IS 'ユーザーの論文閲覧履歴';
+        COMMENT ON TABLE paper_views IS 'ユーザーの論文閲覧履歴。タイムラインでのグレーアウト表示に使用';
     """)
 
     # paper_figures
@@ -135,7 +133,7 @@ def upgrade() -> None:
             created_at      TIMESTAMPTZ DEFAULT NOW(),
             UNIQUE(paper_id, figure_index)
         );
-        COMMENT ON TABLE paper_figures IS 'PDFから抽出した論文図表';
+        COMMENT ON TABLE paper_figures IS 'PDFから抽出した論文図表。S3に画像本体を保管';
     """)
 
     # batch_logs
@@ -160,7 +158,7 @@ def upgrade() -> None:
             processing_time_sec INTEGER,
             created_at      TIMESTAMPTZ DEFAULT NOW()
         );
-        COMMENT ON TABLE batch_logs IS '日次バッチ処理の実行ログ';
+        COMMENT ON TABLE batch_logs IS '日次バッチ処理の実行ログ。フィルタ強度の調整に使用';
     """)
 
     # 3. Create Indexes
@@ -173,16 +171,28 @@ def upgrade() -> None:
 
     # other indexes
     op.execute(
-        "CREATE INDEX idx_papers_published ON papers (published_at DESC) WHERE is_relevant = TRUE"
+        """
+        CREATE INDEX idx_papers_published ON papers (published_at DESC)
+        WHERE is_relevant = TRUE
+        """
     )
     op.execute(
-        "CREATE INDEX idx_papers_category ON papers (category_id, published_at DESC) WHERE is_relevant = TRUE"
+        """
+        CREATE INDEX idx_papers_category ON papers (category_id, published_at DESC)
+        WHERE is_relevant = TRUE
+        """
     )
     op.execute(
-        "CREATE INDEX idx_papers_unprocessed_l2 ON papers (created_at) WHERE max_score IS NULL"
+        """
+        CREATE INDEX idx_papers_unprocessed_l2 ON papers (created_at)
+        WHERE max_score IS NULL
+        """
     )
     op.execute(
-        "CREATE INDEX idx_papers_unprocessed_l3 ON papers (importance_score DESC) WHERE max_score IS NOT NULL AND is_relevant IS NULL"
+        """
+        CREATE INDEX idx_papers_unprocessed_l3 ON papers (importance_score DESC)
+        WHERE max_score IS NOT NULL AND is_relevant IS NULL
+        """
     )
     op.execute("CREATE INDEX idx_bookmarks_user ON bookmarks (user_id, created_at DESC)")
     op.execute("CREATE INDEX idx_paper_views_user_paper ON paper_views (user_id, paper_id)")
@@ -198,5 +208,6 @@ def downgrade() -> None:
     op.execute("DROP TABLE IF EXISTS users CASCADE")
     op.execute("DROP TABLE IF EXISTS anchors CASCADE")
     op.execute("DROP TABLE IF EXISTS papers CASCADE")
-    # We might want to keep the extension enabled, but strictly speaking downgrade should reverse it.
+    # We might want to keep the extension enabled,
+    # but strictly speaking downgrade should reverse it.
     # op.execute("DROP EXTENSION IF EXISTS vector")
