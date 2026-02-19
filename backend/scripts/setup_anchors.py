@@ -30,38 +30,76 @@ ANCHORS: list[AnchorDef] = [
     {
         "id": 1,
         "category_name": "基盤モデル & アーキテクチャ",
-        "definition_en": "State-of-the-art model architectures for large language models, including Transformer alternatives (Mamba, RWKV, SSM), Mixture of Experts (MoE), multimodal models, and reasoning-specialized models.",
-        "definition_ja": "大規模言語モデルの最新アーキテクチャ、Transformer代替モデル(Mamba, RWKV)、MoE、マルチモーダル、推論特化型モデルなど。",
+        "definition_en": (
+            "State-of-the-art model architectures for large language models, "
+            "including Transformer alternatives (Mamba, RWKV, SSM), "
+            "Mixture of Experts (MoE), multimodal models, and reasoning-specialized models."
+        ),
+        "definition_ja": (
+            "大規模言語モデルの最新アーキテクチャ、Transformer代替モデル(Mamba, RWKV)、"
+            "MoE、マルチモーダル、推論特化型モデルなど。"
+        ),
     },
     {
         "id": 2,
         "category_name": "学習 & チューニング",
-        "definition_en": "Training and fine-tuning methods to improve model capability and adaptability: post-training (RLHF, DPO), Chain of Thought reasoning, and efficient adaptation (LoRA, QLoRA, Model Merging).",
-        "definition_ja": "モデル能力向上のための学習手法：RLHF, DPO, CoT, LoRA, QLoRA, モデルマージなど。",
+        "definition_en": (
+            "Training and fine-tuning methods to improve model capability and adaptability: "
+            "post-training (RLHF, DPO), Chain of Thought reasoning, "
+            "and efficient adaptation (LoRA, QLoRA, Model Merging)."
+        ),
+        "definition_ja": (
+            "モデル能力向上のための学習手法：RLHF, DPO, CoT, LoRA, QLoRA, モデルマージなど。"
+        ),
     },
     {
         "id": 3,
         "category_name": "アプリケーションエンジニアリング",
-        "definition_en": "Applied LLM engineering: Retrieval-Augmented Generation (RAG, GraphRAG, Hybrid Search), autonomous agents, multi-agent systems, and prompt optimization (DSPy).",
-        "definition_ja": "LLM応用エンジニアリング：RAG, GraphRAG, AIエージェント, マルチエージェント, プロンプト最適化(DSPy)。",
+        "definition_en": (
+            "Applied LLM engineering: Retrieval-Augmented Generation (RAG, GraphRAG), "
+            "Hybrid Search, autonomous agents, multi-agent systems, "
+            "and prompt optimization (DSPy)."
+        ),
+        "definition_ja": (
+            "LLM応用エンジニアリング：RAG, GraphRAG, AIエージェント, マルチエージェント, "
+            "プロンプト最適化(DSPy)。"
+        ),
     },
     {
         "id": 4,
         "category_name": "インフラ & 推論最適化",
-        "definition_en": "Infrastructure and inference optimization for large language models: high-throughput serving (vLLM, TGI), memory management (PagedAttention, KV Cache), quantization, edge AI deployment, and distributed training systems.",
-        "definition_ja": "LLMインフラと推論最適化：vLLM, TGI, PagedAttention, 量子化, エッジAI, 分散学習。",
+        "definition_en": (
+            "Infrastructure and inference optimization for large language models: "
+            "high-throughput serving (vLLM, TGI), memory management (PagedAttention, KV Cache), "
+            "quantization, edge AI deployment, and distributed training systems."
+        ),
+        "definition_ja": (
+            "LLMインフラと推論最適化：vLLM, TGI, PagedAttention, 量子化, エッジAI, 分散学習。"
+        ),
     },
     {
         "id": 5,
         "category_name": "評価 & 安全性",
-        "definition_en": "Evaluation and safety of language models: benchmarks, leaderboards, jailbreak attacks and defenses, hallucination detection, bias assessment, and safety alignment.",
-        "definition_ja": "LLMの評価と安全性：ベンチマーク, ジェイルブレイク攻撃, ハルシネーション検出, バイアス評価, アライメント。",
+        "definition_en": (
+            "Evaluation and safety of language models: benchmarks, leaderboards, "
+            "jailbreak attacks and defenses, hallucination detection, bias assessment, "
+            "and safety alignment."
+        ),
+        "definition_ja": (
+            "LLMの評価と安全性：ベンチマーク, ジェイルブレイク攻撃, ハルシネーション検出, "
+            "バイアス評価, アライメント。"
+        ),
     },
     {
         "id": 6,
         "category_name": "規制 & ビジネス",
-        "definition_en": "AI regulation, policy, and business impact: EU AI Act, copyright issues, training data rights, watermarking techniques, and societal implications of AI.",
-        "definition_ja": "AI規制とビジネス：AI法規制, 著作権, 学習データ権利, ウォーターマーク, 社会的影響。",
+        "definition_en": (
+            "AI regulation, policy, and business impact: EU AI Act, copyright issues, "
+            "training data rights, watermarking techniques, and societal implications of AI."
+        ),
+        "definition_ja": (
+            "AI規制とビジネス：AI法規制, 著作権, 学習データ権利, ウォーターマーク, 社会的影響。"
+        ),
     },
 ]
 
@@ -95,7 +133,9 @@ def main() -> None:
                     # Upsert anchor
                     cur.execute(
                         """
-                        INSERT INTO anchors (id, category_id, category_name, definition_en, definition_ja, embedding)
+                        INSERT INTO anchors (
+                            id, category_id, category_name, definition_en, definition_ja, embedding
+                        )
                         VALUES (%s, %s, %s, %s, %s, %s)
                         ON CONFLICT (category_id) DO UPDATE SET
                             category_name = EXCLUDED.category_name,
@@ -110,9 +150,8 @@ def main() -> None:
                             anchor["category_name"],
                             anchor["definition_en"],
                             anchor["definition_ja"],
-                            str(
-                                embedding
-                            ),  # pgvector requires explicit casting or string format with psycopg v3 if not registered adapter
+                            # pgvector requires explicit casting or string format with psycopg v3
+                            str(embedding),
                         ),
                     )
             conn.commit()
