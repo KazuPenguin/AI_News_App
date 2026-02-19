@@ -8,7 +8,7 @@ Create Date: 2026-02-19 12:00:00.000000
 
 from collections.abc import Sequence
 
-# revision identifiers, used by Alembic.
+from alembic import op
 revision: str = "20260219_001"
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
@@ -72,7 +72,7 @@ def upgrade() -> None:
             created_at      TIMESTAMPTZ DEFAULT NOW(),
             updated_at      TIMESTAMPTZ DEFAULT NOW()
         );
-        COMMENT ON TABLE anchors IS 'ベクトル選別用アンカー定義';
+        COMMENT ON TABLE anchors IS 'ベクトル選別用アンカー定義。行追加でカテゴリ拡張可能';
     """)
 
     # users
@@ -115,7 +115,7 @@ def upgrade() -> None:
             viewed_at   TIMESTAMPTZ DEFAULT NOW(),
             UNIQUE(user_id, paper_id)
         );
-        COMMENT ON TABLE paper_views IS 'ユーザーの論文閲覧履歴';
+        COMMENT ON TABLE paper_views IS 'ユーザーの論文閲覧履歴。タイムラインでのグレーアウト表示に使用';
     """)
 
     # paper_figures
@@ -133,7 +133,7 @@ def upgrade() -> None:
             created_at      TIMESTAMPTZ DEFAULT NOW(),
             UNIQUE(paper_id, figure_index)
         );
-        COMMENT ON TABLE paper_figures IS 'PDFから抽出した論文図表';
+        COMMENT ON TABLE paper_figures IS 'PDFから抽出した論文図表。S3に画像本体を保管';
     """)
 
     # batch_logs
@@ -158,7 +158,7 @@ def upgrade() -> None:
             processing_time_sec INTEGER,
             created_at      TIMESTAMPTZ DEFAULT NOW()
         );
-        COMMENT ON TABLE batch_logs IS '日次バッチ処理の実行ログ';
+        COMMENT ON TABLE batch_logs IS '日次バッチ処理の実行ログ。フィルタ強度の調整に使用';
     """)
 
     # 3. Create Indexes
