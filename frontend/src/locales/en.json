@@ -1,0 +1,51 @@
+{
+    "common": {
+        "loading": "Loading...",
+        "error": "An error occurred",
+        "retry": "Retry",
+        "cancel": "Cancel",
+        "save": "Save",
+        "delete": "Delete",
+        "search": "Search"
+    },
+    "tabs": {
+        "home": "Home",
+        "favorites": "Favorites",
+        "settings": "Settings"
+    },
+    "home": {
+        "title": "AI Research OS",
+        "subtitle": "Today's curated AI papers",
+        "noPapers": "No papers found",
+        "categories": {
+            "foundation_models": "Foundation Models",
+            "training": "Training",
+            "engineering": "Engineering",
+            "infrastructure": "Infrastructure",
+            "evaluation": "Evaluation",
+            "regulation": "Regulation"
+        }
+    },
+    "paper": {
+        "abstract": "Abstract",
+        "aiReview": "AI Review",
+        "bookmark": "Bookmark",
+        "removeBookmark": "Remove Bookmark",
+        "publishedOn": "Published on {{date}}",
+        "relevanceScore": "Relevance: {{score}}%"
+    },
+    "settings": {
+        "title": "Settings",
+        "language": "Language",
+        "interests": "Interest Tags",
+        "notifications": "Notifications",
+        "about": "About"
+    },
+    "auth": {
+        "signIn": "Sign In",
+        "signUp": "Sign Up",
+        "signOut": "Sign Out",
+        "email": "Email",
+        "password": "Password"
+    }
+}

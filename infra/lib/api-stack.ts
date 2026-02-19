@@ -58,7 +58,10 @@ export class ApiStack extends cdk.Stack {
             },
 
             // ログ
-            logRetention: logs.RetentionDays.TWO_WEEKS,
+            logGroup: new logs.LogGroup(this, 'ApiHandlerLogGroup', {
+                retention: logs.RetentionDays.TWO_WEEKS,
+                removalPolicy: cdk.RemovalPolicy.DESTROY,
+            }),
 
             description: 'API handler for AI Research OS (papers, bookmarks, users)',
         });

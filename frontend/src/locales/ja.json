@@ -1,0 +1,51 @@
+{
+    "common": {
+        "loading": "読み込み中...",
+        "error": "エラーが発生しました",
+        "retry": "再試行",
+        "cancel": "キャンセル",
+        "save": "保存",
+        "delete": "削除",
+        "search": "検索"
+    },
+    "tabs": {
+        "home": "ホーム",
+        "favorites": "お気に入り",
+        "settings": "設定"
+    },
+    "home": {
+        "title": "AI Research OS",
+        "subtitle": "本日のAI論文キュレーション",
+        "noPapers": "論文が見つかりません",
+        "categories": {
+            "foundation_models": "基盤モデル",
+            "training": "学習",
+            "engineering": "エンジニアリング",
+            "infrastructure": "インフラ",
+            "evaluation": "評価",
+            "regulation": "規制"
+        }
+    },
+    "paper": {
+        "abstract": "概要",
+        "aiReview": "AIレビュー",
+        "bookmark": "ブックマーク",
+        "removeBookmark": "ブックマーク解除",
+        "publishedOn": "公開日: {{date}}",
+        "relevanceScore": "適合度: {{score}}%"
+    },
+    "settings": {
+        "title": "設定",
+        "language": "言語",
+        "interests": "興味タグ",
+        "notifications": "通知",
+        "about": "アプリについて"
+    },
+    "auth": {
+        "signIn": "ログイン",
+        "signUp": "新規登録",
+        "signOut": "ログアウト",
+        "email": "メールアドレス",
+        "password": "パスワード"
+    }
+}

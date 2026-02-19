@@ -15,12 +15,15 @@ REST API エンドポイント:
 
 from typing import Any
 
+from utils.logger import logger
 
+
+@logger.inject_lambda_context(log_event=True)
 def main(event: dict[str, Any], context: Any) -> dict[str, Any]:
     """API Gateway からプロキシ統合で呼ばれるエントリーポイント"""
     path = event.get("path", "/")
     method = event.get("httpMethod", "GET")
-    print(f"API handler: {method} {path}")
+    logger.info("API request received", extra={"path": path, "method": method})
 
     if path == "/health":
         return {

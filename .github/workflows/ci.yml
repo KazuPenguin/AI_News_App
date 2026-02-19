@@ -48,29 +48,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
 
       - name: Install dependencies
-        run: |
-          pip install --upgrade pip
-          pip install .[dev]
+        run: uv sync
         working-directory: backend
 
       - name: Ruff lint
-        run: ruff check .
+        run: uv run ruff check .
         working-directory: backend
 
       - name: Ruff format check
-        run: ruff format --check .
+        run: uv run ruff format --check .
         working-directory: backend
 
       - name: Mypy type check
-        run: mypy .
+        run: uv run mypy .
         working-directory: backend
 
-      # Test step commented out for now as no tests exist yet, but structure is ready
-      # - name: Pytest
-      #   run: uv run pytest
-      #   working-directory: backend
+      - name: Pytest
+        run: uv run pytest
+        working-directory: backend

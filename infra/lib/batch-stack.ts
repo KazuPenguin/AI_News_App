@@ -69,7 +69,10 @@ export class BatchStack extends cdk.Stack {
             },
 
             // ログ
-            logRetention: logs.RetentionDays.TWO_WEEKS,
+            logGroup: new logs.LogGroup(this, 'BatchHandlerLogGroup', {
+                retention: logs.RetentionDays.TWO_WEEKS,
+                removalPolicy: cdk.RemovalPolicy.DESTROY,
+            }),
 
             description: 'Daily batch: arXiv fetch → L2 vector filter → L3 LLM analysis → figure extraction',
         });
