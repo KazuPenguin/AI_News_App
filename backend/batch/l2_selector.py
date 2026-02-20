@@ -6,6 +6,7 @@ OpenAI Embedding で論文ベクトルを生成し、DB に挿入後、
 """
 
 from __future__ import annotations
+import json
 
 from openai import OpenAI
 
@@ -189,7 +190,7 @@ def _update_l2_results(results: list[L2Result]) -> None:
                     r.max_score,
                     r.hit_count,
                     r.importance_score,
-                    str(r.all_scores),  # JSONB として文字列化
+                    json.dumps(r.all_scores),  # JSONB として文字列化
                     r.arxiv_id,
                 ),
             )
