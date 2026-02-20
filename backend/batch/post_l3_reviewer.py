@@ -28,7 +28,6 @@ from batch.config import (
     FIGURE_S3_PREFIX,
     GEMINI_MODEL,
     POST_L3_CONCURRENCY,
-    POST_L3_MAX_OUTPUT_TOKENS,
     POST_L3_MAX_RETRIES,
     POST_L3_SYSTEM_PROMPT,
     POST_L3_TEMPERATURE,
@@ -48,7 +47,7 @@ async def download_pdf(pdf_url: str) -> bytes | None:
     for attempt in range(2):
         try:
             async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
-                response = await client.get(pdf_url)
+                response = await asyncio.wait_for(client.get(pdf_url), timeout=70.0)
                 response.raise_for_status()
                 return response.content
         except Exception:
@@ -93,8 +92,8 @@ async def _generate_detail_review(
                 config=types.GenerateContentConfig(
                     system_instruction=POST_L3_SYSTEM_PROMPT,
                     response_mime_type="application/json",
+                    response_schema=DetailReview,
                     temperature=POST_L3_TEMPERATURE,
-                    max_output_tokens=POST_L3_MAX_OUTPUT_TOKENS,
                 ),
             )
 
@@ -147,7 +146,14 @@ def _extract_figures_from_pdf(
         logger.error("Failed to open PDF", extra={"arxiv_id": arxiv_id}, exc_info=True)
         return figures
 
-    s3_client = boto3.client("s3", region_name="ap-northeast-1")
+    # Local development support: use AWS_PROFILE if specified
+    aws_profile = os.environ.get("AWS_PROFILE")
+    if aws_profile:
+        session = boto3.Session(profile_name=aws_profile, region_name="ap-northeast-1")
+        s3_client = session.client("s3")
+    else:
+        s3_client = boto3.client("s3", region_name="ap-northeast-1")
+
     figure_index = 0
 
     for page_num in range(len(doc)):
@@ -345,8 +351,24 @@ async def run_post_l3(
         paper: L2Paper,
     ) -> tuple[DetailReview | None, list[ExtractedFigure]]:
         async with semaphore:
+            logger.info("Processing post-L3 paper", extra={"arxiv_id": paper.arxiv_id})
             summary_ja = summaries.get(paper.arxiv_id, "")
-            return await _process_relevant_paper(client, paper, summary_ja)
+            try:
+                res = await asyncio.wait_for(
+                    _process_relevant_paper(client, paper, summary_ja), timeout=300
+                )
+                logger.info("Finished post-L3 paper", extra={"arxiv_id": paper.arxiv_id})
+                return res
+            except asyncio.TimeoutError:
+                logger.error(
+                    "Post-L3 paper processing timed out", extra={"arxiv_id": paper.arxiv_id}
+                )
+                return None, []
+            except Exception as e:
+                logger.error(
+                    "Post-L3 processing error", extra={"arxiv_id": paper.arxiv_id}, exc_info=True
+                )
+                raise e
 
     tasks = [process_with_limit(p) for p in papers]
     results = await asyncio.gather(*tasks, return_exceptions=True)

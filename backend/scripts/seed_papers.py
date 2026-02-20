@@ -7,6 +7,7 @@ import asyncio
 import time
 
 import requests
+from dotenv import load_dotenv
 
 from batch.config import (
     ARXIV_BASE_URL,
@@ -22,6 +23,8 @@ from batch.post_l3_reviewer import run_post_l3
 from utils.db import close_connections, get_async_connection
 from utils.logger import logger
 from utils.models import ArxivPaper
+
+load_dotenv()
 
 
 def fetch_seed_papers(max_results_per_category: int = 70) -> list[ArxivPaper]:
@@ -92,7 +95,7 @@ async def main() -> None:
 
     # 3. L3 分析 (Gemini 判定・要約)
     try:
-        l3_papers = await run_l3(l2_papers)
+        l3_papers, _, _ = await run_l3(l2_papers)
     except Exception:
         logger.error("L3 failed", exc_info=True)
         return

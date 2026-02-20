@@ -18,7 +18,6 @@ from batch.config import (
     CATEGORY_NAMES,
     GEMINI_MODEL,
     L3_CONCURRENCY,
-    L3_MAX_OUTPUT_TOKENS,
     L3_MAX_RETRIES,
     L3_REQUEST_INTERVAL_MS,
     L3_SYSTEM_PROMPT,
@@ -54,8 +53,8 @@ def build_l3_prompt(paper: L2Paper) -> str:
 async def _call_gemini(
     client: genai.Client,
     paper: L2Paper,
-) -> L3Response | None:
-    """Gemini API を呼び出して L3Response を取得する。指数バックオフ付きリトライ。"""
+) -> tuple[L3Response | None, int, int]:
+    """Gemini API を呼び出して L3Response とトークン数 (in_tokens, out_tokens) を取得する。"""
     user_prompt = build_l3_prompt(paper)
 
     for attempt in range(L3_MAX_RETRIES):
@@ -66,8 +65,8 @@ async def _call_gemini(
                 config=types.GenerateContentConfig(
                     system_instruction=L3_SYSTEM_PROMPT,
                     response_mime_type="application/json",
+                    response_schema=L3Response,
                     temperature=L3_TEMPERATURE,
-                    max_output_tokens=L3_MAX_OUTPUT_TOKENS,
                 ),
             )
 
@@ -79,7 +78,14 @@ async def _call_gemini(
                 continue
 
             parsed = json.loads(response.text)
-            return L3Response(**parsed)
+
+            in_tokens = 0
+            out_tokens = 0
+            if response.usage_metadata:
+                in_tokens = getattr(response.usage_metadata, "prompt_token_count", 0)
+                out_tokens = getattr(response.usage_metadata, "candidates_token_count", 0)
+
+            return L3Response(**parsed), in_tokens, out_tokens
 
         except json.JSONDecodeError:
             logger.warning(
@@ -100,7 +106,7 @@ async def _call_gemini(
             await asyncio.sleep(wait)
 
     logger.error("L3 all retries failed", extra={"arxiv_id": paper.arxiv_id})
-    return None
+    return None, 0, 0
 
 
 # ---------------------------------------------------------------------------
@@ -142,34 +148,34 @@ async def _process_paper(
     client: genai.Client,
     paper: L2Paper,
     semaphore: asyncio.Semaphore,
-) -> tuple[str, L3Response | None]:
+) -> tuple[str, L3Response | None, int, int]:
     """セマフォで並列数を制限しつつ、1論文を L3 分析する。"""
     async with semaphore:
         # リクエスト間隔
         await asyncio.sleep(L3_REQUEST_INTERVAL_MS / 1000)
 
-        result = await _call_gemini(client, paper)
+        result, in_tokens, out_tokens = await _call_gemini(client, paper)
         if result is not None:
             await _update_l3_result(paper.arxiv_id, result)
 
-        return paper.arxiv_id, result
+        return paper.arxiv_id, result, in_tokens, out_tokens
 
 
 # ---------------------------------------------------------------------------
 # メイン: L3 分析
 # ---------------------------------------------------------------------------
-async def run_l3(papers: list[L2Paper]) -> list[L2Paper]:
+async def run_l3(papers: list[L2Paper]) -> tuple[list[L2Paper], int, int]:
     """L3: Gemini LLM 分析を実行する。
 
     Args:
         papers: L2 を通過した論文リスト
 
     Returns:
-        L3 で is_relevant=True と判定された論文リスト
+        (L3 で is_relevant=True と判定された論文リスト, total_in_tokens, total_out_tokens)
     """
     if not papers:
         logger.info("L3: No papers to process")
-        return []
+        return [], 0, 0
 
     logger.info("L3 analysis started", extra={"input_count": len(papers)})
 
@@ -184,11 +190,17 @@ async def run_l3(papers: list[L2Paper]) -> list[L2Paper]:
     errors: list[str] = []
     paper_map = {p.arxiv_id: p for p in papers}
 
+    total_in_tokens = 0
+    total_out_tokens = 0
+
     for r in results:
         if isinstance(r, BaseException):
             errors.append(str(r))
             continue
-        arxiv_id, l3_result = r
+        arxiv_id, l3_result, in_tok, out_tok = r
+        total_in_tokens += in_tok
+        total_out_tokens += out_tok
+
         if l3_result is not None and l3_result.is_relevant:
             paper = paper_map.get(arxiv_id)
             if paper is not None:
@@ -201,7 +213,9 @@ async def run_l3(papers: list[L2Paper]) -> list[L2Paper]:
             "relevant_count": len(relevant_papers),
             "rejected_count": len(papers) - len(relevant_papers) - len(errors),
             "error_count": len(errors),
+            "in_tokens": total_in_tokens,
+            "out_tokens": total_out_tokens,
         },
     )
 
-    return relevant_papers
+    return relevant_papers, total_in_tokens, total_out_tokens
