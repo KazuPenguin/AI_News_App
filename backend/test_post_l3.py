@@ -7,7 +7,7 @@ from utils.secrets import get_gemini_api_key
 from datetime import datetime
 
 
-async def test():
+async def test() -> None:
     load_dotenv()
     paper = L2Paper(
         arxiv_id="1234.5678",

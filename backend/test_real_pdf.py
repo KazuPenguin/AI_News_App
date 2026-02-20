@@ -2,7 +2,7 @@ import asyncio
 from batch.post_l3_reviewer import download_pdf, extract_and_upload_figures
 
 
-async def test():
+async def test() -> None:
     # A known arXiv PDF URL
     url = "https://arxiv.org/pdf/2402.12345.pdf"
     print(f"Downloading {url}...")

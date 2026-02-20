@@ -2,7 +2,7 @@ import asyncio
 from batch.post_l3_reviewer import download_pdf
 
 
-async def test_pdf_download():
+async def test_pdf_download() -> None:
     # URL 1: A valid arXiv PDF URL (Attention Is All You Need)
     url1 = "https://arxiv.org/pdf/1706.03762"
     print(f"Testing valid PDF download: {url1}")

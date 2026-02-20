@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 from batch.pipeline import run_pipeline
 
 
-async def test():
+async def test() -> None:
     load_dotenv()
     await run_pipeline()
 
