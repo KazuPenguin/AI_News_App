@@ -53,7 +53,7 @@ class TestPipeline:
 
     @pytest.mark.asyncio
     @patch("batch.pipeline.close_connections", new_callable=AsyncMock)
-    @patch("batch.pipeline.get_async_connection")
+    @patch("batch.pipeline.get_async_connection", new_callable=AsyncMock)
     @patch("batch.pipeline.run_post_l3", new_callable=AsyncMock)
     @patch("batch.pipeline.run_l3", new_callable=AsyncMock)
     @patch("batch.pipeline.run_l2")
@@ -66,7 +66,7 @@ class TestPipeline:
         mock_l2: MagicMock,
         mock_l3: AsyncMock,
         mock_post_l3: AsyncMock,
-        mock_get_conn: MagicMock,
+        mock_get_conn: AsyncMock,
         mock_close: AsyncMock,
     ) -> None:
         """正常系: 全フェーズが成功する場合。"""
@@ -80,7 +80,7 @@ class TestPipeline:
 
         # L3
         l3_papers = [_make_l2_paper("2402.11111")]
-        mock_l3.return_value = l3_papers
+        mock_l3.return_value = (l3_papers, 100, 50)
 
         # Post-L3
         mock_post_l3.return_value = (1, 3, [])
@@ -107,7 +107,7 @@ class TestPipeline:
 
     @pytest.mark.asyncio
     @patch("batch.pipeline.close_connections", new_callable=AsyncMock)
-    @patch("batch.pipeline.get_async_connection")
+    @patch("batch.pipeline.get_async_connection", new_callable=AsyncMock)
     @patch("batch.pipeline.run_post_l3", new_callable=AsyncMock)
     @patch("batch.pipeline.run_l3", new_callable=AsyncMock)
     @patch("batch.pipeline.run_l2")
@@ -120,13 +120,13 @@ class TestPipeline:
         mock_l2: MagicMock,
         mock_l3: AsyncMock,
         mock_post_l3: AsyncMock,
-        mock_get_conn: MagicMock,
+        mock_get_conn: AsyncMock,
         mock_close: AsyncMock,
     ) -> None:
         """L1 が失敗しても後続フェーズが空リストで実行される。"""
         mock_l1.side_effect = RuntimeError("arXiv API down")
         mock_l2.return_value = []
-        mock_l3.return_value = []
+        mock_l3.return_value = ([], 0, 0)
         mock_post_l3.return_value = (0, 0, [])
 
         mock_conn = AsyncMock()
@@ -147,7 +147,7 @@ class TestPipeline:
 
     @pytest.mark.asyncio
     @patch("batch.pipeline.close_connections", new_callable=AsyncMock)
-    @patch("batch.pipeline.get_async_connection")
+    @patch("batch.pipeline.get_async_connection", new_callable=AsyncMock)
     @patch("batch.pipeline.run_post_l3", new_callable=AsyncMock)
     @patch("batch.pipeline.run_l3", new_callable=AsyncMock)
     @patch("batch.pipeline.run_l2")
@@ -160,13 +160,13 @@ class TestPipeline:
         mock_l2: MagicMock,
         mock_l3: AsyncMock,
         mock_post_l3: AsyncMock,
-        mock_get_conn: MagicMock,
+        mock_get_conn: AsyncMock,
         mock_close: AsyncMock,
     ) -> None:
         """L2 が失敗しても L3 以降が空リストで実行される。"""
         mock_l1.return_value = [_make_arxiv_paper()]
         mock_l2.side_effect = RuntimeError("DB connection failed")
-        mock_l3.return_value = []
+        mock_l3.return_value = ([], 0, 0)
         mock_post_l3.return_value = (0, 0, [])
 
         mock_conn = AsyncMock()
@@ -186,7 +186,7 @@ class TestPipeline:
 
     @pytest.mark.asyncio
     @patch("batch.pipeline.close_connections", new_callable=AsyncMock)
-    @patch("batch.pipeline.get_async_connection")
+    @patch("batch.pipeline.get_async_connection", new_callable=AsyncMock)
     @patch("batch.pipeline.run_post_l3", new_callable=AsyncMock)
     @patch("batch.pipeline.run_l3", new_callable=AsyncMock)
     @patch("batch.pipeline.run_l2")
@@ -199,13 +199,13 @@ class TestPipeline:
         mock_l2: MagicMock,
         mock_l3: AsyncMock,
         mock_post_l3: AsyncMock,
-        mock_get_conn: MagicMock,
+        mock_get_conn: AsyncMock,
         mock_close: AsyncMock,
     ) -> None:
         """L1 が空リストを返す場合。"""
         mock_l1.return_value = []
         mock_l2.return_value = []
-        mock_l3.return_value = []
+        mock_l3.return_value = ([], 0, 0)
         mock_post_l3.return_value = (0, 0, [])
 
         mock_conn = AsyncMock()
