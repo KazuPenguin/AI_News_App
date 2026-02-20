@@ -1,34 +1,44 @@
 """
-AI Research OS — Batch Lambda Handler (placeholder)
+AI Research OS — Batch Lambda Handler
 
-日次バッチ処理:
-  L1: arXiv API から論文取得
-  L2: pgvector で類似度ベースの選別
-  L3: Gemini で詳細分析
-  図表抽出: PDF → S3 保管
+EventBridge (UTC 21:00 Mon-Fri) からトリガーされ、
+L1 → L2 → L3 → Post-L3 のキュレーションパイプラインを実行する。
 """
 
+from __future__ import annotations
+
+import asyncio
 from typing import Any
 
-from utils.logger import CurationStats, log_curation_stats, logger, metrics
+from utils.logger import logger, metrics
 
 
 @logger.inject_lambda_context(log_event=True)
 @metrics.log_metrics(capture_cold_start_metric=True)
 def main(event: dict[str, Any], context: Any) -> dict[str, Any]:
-    """EventBridge からトリガーされるエントリーポイント"""
+    """EventBridge からトリガーされるエントリーポイント。
+
+    asyncio.run() でパイプライン全体を実行する。
+    """
     logger.info("Batch handler invoked")
 
-    # -----------------------------------------------------------------------
-    # TODO: 実際のキュレーション処理を実装後、以下のダミー値を置き換える
-    # -----------------------------------------------------------------------
-    stats = CurationStats(
-        l1_fetched=0,
-        l2_passed=0,
-        l2_filtered=0,
-        l3_passed=0,
-        l3_filtered=0,
-    )
-    log_curation_stats(stats)
+    try:
+        from batch.pipeline import run_pipeline
 
-    return {"statusCode": 200, "body": "OK"}
+        log_entry = asyncio.run(run_pipeline())
+
+        return {
+            "statusCode": 200,
+            "body": {
+                "execution_date": log_entry.execution_date,
+                "l1_dedup_count": log_entry.l1_dedup_count,
+                "l2_passed_count": log_entry.l2_passed_count,
+                "l3_relevant_count": log_entry.l3_relevant_count,
+                "figures_extracted": log_entry.figures_extracted,
+                "processing_time_sec": log_entry.processing_time_sec,
+                "error_count": len(log_entry.errors),
+            },
+        }
+    except Exception:
+        logger.error("Pipeline execution failed", exc_info=True)
+        return {"statusCode": 500, "body": "Pipeline execution failed"}

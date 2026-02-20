@@ -25,31 +25,27 @@ export interface BatchStackProps extends cdk.StackProps {
 
 export class BatchStack extends cdk.Stack {
     /** バッチ処理 Lambda 関数 */
-    public readonly batchHandler: lambda.Function;
+    public readonly batchHandler: lambda.DockerImageFunction;
 
     constructor(scope: Construct, id: string, props: BatchStackProps) {
         super(scope, id, props);
 
         // =========================================================================
-        // バッチ処理 Lambda
+        // バッチ処理 Lambda (Docker イメージ)
         //
         // 処理内容 (設計書参照):
         //   L1: arXiv API から論文取得 (arxiv_API.md)
         //   L2: pgvector で類似度ベースの選別 (pgvector.md)
         //   L3: Gemini で詳細分析 (LLM_Refinement.md)
-        //   図表抽出: PDF → S3 保管 (database_schema.md §2.6)
+        //   Post-L3: PDF全文分析 + 図表抽出 (agent_design.md)
         //
         // セキュリティ (security_architecture.md §5.2):
         //   - Secrets Manager: RDS パスワード + 外部 API キー読み取り
         //   - S3: figures/* への書き込みのみ
         // =========================================================================
-        this.batchHandler = new lambda.Function(this, 'BatchHandler', {
-            runtime: lambda.Runtime.PYTHON_3_13,
-            handler: 'handler.main',
-            code: lambda.Code.fromAsset('../backend/batch', {
-                // バックエンドコード未作成時はダミーでデプロイ可能なように
-                // TODO: Docker イメージに切り替え検討 (依存ライブラリが多い場合)
-                bundling: undefined,
+        this.batchHandler = new lambda.DockerImageFunction(this, 'BatchHandler', {
+            code: lambda.DockerImageCode.fromImageAsset('../backend', {
+                file: 'Dockerfile.batch',
             }),
             memorySize: 1024,
             timeout: cdk.Duration.minutes(15),
@@ -74,7 +70,7 @@ export class BatchStack extends cdk.Stack {
                 removalPolicy: cdk.RemovalPolicy.DESTROY,
             }),
 
-            description: 'Daily batch: arXiv fetch → L2 vector filter → L3 LLM analysis → figure extraction',
+            description: 'Daily batch: arXiv fetch → L2 vector filter → L3 LLM analysis → PDF review → figure extraction',
         });
 
         // =========================================================================
