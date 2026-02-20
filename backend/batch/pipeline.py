@@ -61,8 +61,13 @@ async def run_pipeline() -> BatchLogEntry:
     # -----------------------------------------------------------------------
     # L3: Gemini LLM 分析 (非同期)
     # -----------------------------------------------------------------------
+    l3_in_tokens = 0
+    l3_out_tokens = 0
+    l3_cost_usd: float = 0.0
     try:
-        l3_papers = await run_l3(l2_papers)
+        l3_papers, l3_in_tokens, l3_out_tokens = await run_l3(l2_papers)
+        # Gemini 2.5 Flash Pricing (approx: $0.075 / 1M input, $0.30 / 1M output tokens)
+        l3_cost_usd = (l3_in_tokens / 1_000_000) * 0.075 + (l3_out_tokens / 1_000_000) * 0.30
     except Exception as e:
         logger.error("L3 failed", exc_info=True)
         errors.append(f"L3: {e}")
@@ -128,6 +133,9 @@ async def run_pipeline() -> BatchLogEntry:
         l3_relevance_rate=(
             round(l3_relevant_count / l2_passed_count * 100, 1) if l2_passed_count else 0
         ),
+        l3_input_tokens=l3_in_tokens,
+        l3_output_tokens=l3_out_tokens,
+        l3_cost_usd=l3_cost_usd,
         figures_extracted=figures_extracted,
         errors=errors,
         processing_time_sec=elapsed,

@@ -67,8 +67,8 @@ class L3Response(BaseModel):
     secondary_category_ids: list[int] = Field(default_factory=list)
     confidence: float = Field(ge=0.0, le=1.0)
     importance: int = Field(ge=1, le=5)
-    summary_ja: str = Field(max_length=150)
-    reasoning: str = Field(max_length=200, default="")
+    summary_ja: str
+    reasoning: str = ""
 
 
 # ---------------------------------------------------------------------------
@@ -113,7 +113,7 @@ class DetailReview(BaseModel):
     perspectives: Perspectives
     levels: Levels
     figure_analysis: list[FigureAnalysis] = Field(default_factory=list)
-    one_line_takeaway: str = Field(max_length=100, default="")
+    one_line_takeaway: str = ""
 
 
 # ---------------------------------------------------------------------------

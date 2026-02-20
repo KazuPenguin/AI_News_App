@@ -114,7 +114,7 @@ IMPORTANCE_WEIGHT_MATCHED_QUERIES = 0.1
 # ---------------------------------------------------------------------------
 # Gemini L3 分析
 # ---------------------------------------------------------------------------
-GEMINI_MODEL = "gemini-2.0-flash"
+GEMINI_MODEL = "gemini-2.5-flash"
 L3_CONCURRENCY = 5
 L3_REQUEST_INTERVAL_MS = 200
 L3_TEMPERATURE = 0.1

@@ -18,10 +18,12 @@ graph TD
         PR --> Security_Flow
         
         %% Workflows
-        subgraph CI_Workflow ["CI (ci.yml)"]
+        subgraph CI_Workflow ["CI (ci.yml) / Frontend CI/CD"]
             Ruff[Backend: Ruff Lint/Format]
             CDK_Check[Infra: TypeScript Check & Test]
             CDK_Synth[Infra: CDK Synth]
+            Frontend_CI[Frontend: Lint, Test, TypeCheck]
+            Expo_Preview[Frontend: EAS Update & PR QR Code]
             
             Ruff --> CDK_Check
             CDK_Check --> CDK_Synth
@@ -92,5 +94,5 @@ sequenceDiagram
 | 機能 | 設計 (Specification) | 現状 (Current Implementation) | 乖離 (Gap) |
 | :--- | :--- | :--- | :--- |
 | **Backend Deploy** | Docker Image (ECR) + Lambda Container | Zip Asset Upload | **要対応** (Docker化 or 設計変更) |
-| **Backend Test** | pytest, mypy | 未実装 | **要追加** |
-| **Frontend CI/CD** | Lint, Test, Build (EAS/Fastlane) | 未実装 | **要新規作成** |
+| **Backend Test** | pytest, mypy | `ci.yml` に実装済 | **完了** |
+| **Frontend CI/CD** | Lint, Test, Build (EAS/Fastlane) | `frontend.yml` (CI) / `expo-preview.yml` (PR QR Code) | 本番Build(EAS/Fastlane)が未着手 |

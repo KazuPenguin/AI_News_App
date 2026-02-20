@@ -24,6 +24,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "ad2b82e4-c6fc-4642-8d24-6eac6a7a3e7e"
+      }
+    },
+    "owner": "kazupenguin"
   }
 }

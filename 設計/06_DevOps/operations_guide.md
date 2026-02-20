@@ -153,3 +153,36 @@ npm start
 - [ ] 論文をタップし、要約や図表が表示されること（閲覧履歴としてカウントされること）
 - [ ] お気に入り登録・解除ができること
 - [ ] 設定画面で統計データ（閲覧数など）が表示されること
+
+---
+
+## 8. 運用における監視ポイント (Operations & Monitoring)
+
+AI処理や外部APIへの依存が多い本アプリケーションでは、AWS運用時に以下のポイントを重点的に監視（CloudWatch Logs / Metrics）する必要があります。
+
+### 1. Batch Pipeline (Lambda) の実行状況
+日次バッチ（`BatchStack-PipelineLambda`）は外部API(arXiv, Gemini)を大量に呼び出します。以下のエラーやメトリクスに注意が必要です。
+* **Lambda Timeout (実行時間の超過)**
+  * PDFのダウンロード(httpx)やGemini APIの生成待ちでハングするリスクがあります。Lambdaの最大実行時間（通常15分等）に達していないか監視します。
+* **CloudWatch Logs の特定エラー文字列の監視 (Metric Filters)**
+  以下の文字列をCloudWatch上でアラート設定しておくことを推奨します。
+  * `"PDF download failed"` : arXivのサーバーダウンや一時的なアクセス制限。
+  * `"Post-L3 paper processing timed out"` : PDF分析時の無限ハングを強制終了したケース。頻発する場合はタイムアウト値(`70.0`, `300`秒)の見直しが必要です。
+  * `"L3 API error, retrying" / "Post-L3 API error, retrying"` : Gemini APIの503エラーやレートリミット(429)。
+  * `"ValidationError"` : Geminiがシステムプロンプトやスキーマ(`L3Response` / `DetailReview`)に従わず、想定外のJSONを返却したケース。プロンプトの調整が必要になります。
+
+### 2. 外部APIの利用制限 (Rate Limit / Quotas)
+* **arXiv API / PDF Download**
+  * arXivは連続アクセスに厳しく、`httpx.get`時にIPブロック(403 Forbiddenなど)を受けるとバッチが全滅します。エラーログが増加した場合、`L1_REQUEST_INTERVAL_MS` や `L3_CONCURRENCY` などの並列度・間隔調整が必要です。
+* **Gemini (Google AI Studio)**
+  * Google AI Studioのダッシュボードで、**RPM (Requests per minute)**, **TPM (Tokens per minute)**, **RPD (Requests per day)** が上限に達していないかを定期監視します。上限にあたる場合は有償プランへの移行を検討します。
+
+### 3. Database (Amazon RDS / PostgreSQL)
+* **データベース接続数 (DatabaseConnections)**
+  * 非同期処理(`asyncio.gather`)で大量のタスクを並列化しているため、Lambdaからの非同期コネクション(`psycopg.AsyncConnection`)が急増してRDSの「Too many connections」にならないか監視します。
+* **ストレージ容量 (FreeStorageSpace)**
+  * `pgvector`によるベクトルデータ(`embedding`列)や、Markdownによる全文分析(`detail_review`)はテキスト/ベクトルデータサイズが大きくなりがちです。日次でデータが蓄積していくため、ストレージアラート(例: 残り20%以下)を設定します。
+
+### 4. Amazon S3 (図表抽出画像)
+* PyMuPDFで抽出した大量の図表画像がS3(`FIGURE_BUCKET`)に日次でアップロードされます。
+* 不要になった過去論文の画像を消すライフサイクルルール(例: 1年経過したプレフィックスを自動削除)を設定しないと、ストレージコストが増大する点に留意してください。
