@@ -47,21 +47,38 @@ npx cdk deploy --all --require-approval never
 
 ---
 
-## 3. データベースの初期化とマイグレーション
+## 3. データベースの初期化とマイグレーション (踏み台経由)
 
 インフラデプロイにより構築されたRDS (PostgreSQL) に対して、テーブルの作成と拡張機能(pgvector)の有効化を行います。
+本環境は完全にプライベートなVPC内にあるため、セキュリティの観点から **SSM (Systems Manager) を用いた踏み台ポートフォワーディング** を利用してローカルのターミナルから操作を行います。
 
-### 3.1 RDS への接続情報の取得
-AWS Secrets Manager に自動生成された `ai-research/db-credentials` の値、もしくはAWSコンソールからRDSのエンドポイントとパスワードを取得します。
+### 3.1 事前準備: Session Manager Plugin のインストール
+Mac(ローカルPC)上でポートフォワーディングを行うために、以下のプラグインをインストールします。
+```bash
+brew install awscli session-manager-plugin
+```
 
-### 3.2 Alembic によるマイグレーション実行
-ローカルPCからAWSのDBへ直接繋ぐか、デプロイ済みのLambda環境等を利用してAlembicを実行します。今回はローカルPCから（踏み台などを経由して）実行する想定のコマンドです。
+### 3.2 踏み台を経由したポートのトンネル接続
+CDKのデプロイで作成された踏み台(Bastion Host) のインスタンスIDと、RDSのエンドポイントを使い、トンネルを開通させます。（ターミナルを立ち上げっぱなしにします）
+
+```bash
+aws ssm start-session \
+    --target <BASTION_INSTANCE_ID> \
+    --document-name AWS-StartPortForwardingSessionToRemoteHost \
+    --parameters '{"host":["<RDS_ENDPOINT>"],"portNumber":["5432"],"localPortNumber":["15432"]}'
+```
+※ `<BASTION_INSTANCE_ID>` はCDKの出力 `AiResearch-BastionInstanceId` に表示されます。
+※ `<RDS_ENDPOINT>` はCDKの出力 `AiResearch-DbEndpoint` に表示されます。
+
+### 3.3 Alembic によるマイグレーション実行
+**別のターミナル**を開き、`host`を `localhost`、ポートを先ほどフォワードした `15432` に設定してマイグレーションを実行します。
 
 ```bash
 cd backend
 
-# DATABASE_URL環境変数にRDSの接続文字列を設定
-export DATABASE_URL="postgresql://postgres:PASSWORD@RDS_ENDPOINT:5432/ai_research"
+# DATABASE_URL環境変数にローカルPCあてのポートフォワードURLを設定
+# パスワードはAWS Secrets Managerで確認、またはAWSコンソールで初期設定したもの
+export DATABASE_URL="postgresql://postgres:PASSWORD@localhost:15432/ai_research"
 
 # マイグレーション実行 (テーブル・pgvectorの作成)
 uv run alembic upgrade head
@@ -96,7 +113,7 @@ uv run python -m scripts.seed_papers
 
 ## 5. フロントエンドの環境変数設定 & ビルド
 
-デプロイされたバックエンドの情報をフロントエンドの `.env` (または `.env.local`, `.env.production`) に設定します。
+デプロイされたバックエンドの情報をフロントエンドの [.env](file:///Users/suenagakazuya/Documents/AI_News_App/frontend/.env) (または `.env.local`, `.env.production`) に設定します。
 
 ```env
 # frontend/.env
@@ -124,7 +141,7 @@ npm start
 1. AWS Console > Lambda へ移動
 2. `BatchStack` に含まれる関数 (例: `BatchStack-PipelineLambda...`) を選択
 3. 「テスト」タブから空イベント `{}` で実行をクリック
-4. 数分後、CloudWatch Logs にてエラーなく `run_pipeline` が完了しているか確認
+4. 数分後、CloudWatch Logs にてエラーなく [run_pipeline](file:///Users/suenagakazuya/Documents/AI_News_App/backend/batch/pipeline.py#23-192) が完了しているか確認
 
 ---
 
