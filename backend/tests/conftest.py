@@ -3,11 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from typing import Any, Generator
-from unittest.mock import MagicMock
 
-import psycopg
 import pytest
 from fastapi.testclient import TestClient
 
@@ -24,9 +21,7 @@ class FakeLambdaContext:
 
     function_name: str = "test-function"
     memory_limit_in_mb: int = 128
-    invoked_function_arn: str = (
-        "arn:aws:lambda:ap-northeast-1:123456789012:function:test-function"
-    )
+    invoked_function_arn: str = "arn:aws:lambda:ap-northeast-1:123456789012:function:test-function"
     aws_request_id: str = "test-request-id-00000000"
     log_group_name: str = "/aws/lambda/test-function"
     log_stream_name: str = "2026/02/19/[$LATEST]test"

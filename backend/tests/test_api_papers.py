@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from datetime import datetime, timezone
 from typing import Any
 
@@ -24,7 +23,6 @@ class TestListPapers:
     def test_returns_empty_list(self, api_client, fake_conn) -> None:  # type: ignore[no-untyped-def]
         # fetchall → 空、fetchone (COUNT) → 0
         conn: FakeConnection = fake_conn
-        original_cursor = conn.cursor()
 
         class PapersCursor(FakeCursor):
             def __init__(self) -> None:
@@ -69,9 +67,18 @@ class TestListPapers:
                         # summary_ja, one_line_takeaway, authors, published_at, id,
                         # is_bookmarked, is_viewed
                         [
-                            "2402.12345", "Test Paper", 1, "基盤モデル", 4,
-                            "テスト要約", "一行まとめ", ["Author A"], now, 42,
-                            False, True,
+                            "2402.12345",
+                            "Test Paper",
+                            1,
+                            "基盤モデル",
+                            4,
+                            "テスト要約",
+                            "一行まとめ",
+                            ["Author A"],
+                            now,
+                            42,
+                            False,
+                            True,
                         ]
                     ]
                 self._index = 0
@@ -115,11 +122,19 @@ class TestGetPaperDetail:
         }
         conn._cursor._results = [
             [
-                "2402.12345", "Test Paper", "Abstract text",
-                ["Author A", "Author B"], "https://arxiv.org/pdf/2402.12345",
-                1, "基盤モデル", 4, now,
-                "テスト要約", detail_review,
-                False, True,
+                "2402.12345",
+                "Test Paper",
+                "Abstract text",
+                ["Author A", "Author B"],
+                "https://arxiv.org/pdf/2402.12345",
+                1,
+                "基盤モデル",
+                4,
+                now,
+                "テスト要約",
+                detail_review,
+                False,
+                True,
             ]
         ]
         resp = api_client.get("/papers/2402.12345")
