@@ -5,6 +5,10 @@ module.exports = function (api) {
             ["babel-preset-expo", { jsxImportSource: "nativewind" }],
             "nativewind/babel",
         ],
-        plugins: ["react-native-reanimated/plugin"],
+        plugins: [
+            // Reanimated plugin can cause "worklets" resolution error in Jest. 
+            // Often it's not strictly needed for basic testing, or should be mocked.
+            ...(process.env.NODE_ENV !== "test" ? ["react-native-reanimated/plugin"] : []),
+        ],
     };
 };
