@@ -1,0 +1,17 @@
+FROM public.ecr.aws/lambda/python:3.13
+
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+
+# Copy dependency definition
+COPY pyproject.toml .
+
+# Install dependencies (production only)
+RUN uv pip install --system -r pyproject.toml
+
+# Copy application code
+COPY batch/ ${LAMBDA_TASK_ROOT}/batch/
+COPY utils/ ${LAMBDA_TASK_ROOT}/utils/
+
+# Lambda handler
+CMD [ "batch.handler.main" ]

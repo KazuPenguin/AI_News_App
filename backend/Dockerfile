@@ -13,6 +13,7 @@ RUN uv pip install --system -r pyproject.toml
 
 # Copy application code
 COPY api/ ${LAMBDA_TASK_ROOT}/api/
+COPY utils/ ${LAMBDA_TASK_ROOT}/utils/
 
 # Set the CMD to your handler (could also be done as a parameter override outside of the Dockerfile)
 CMD [ "api.handler.main" ]
