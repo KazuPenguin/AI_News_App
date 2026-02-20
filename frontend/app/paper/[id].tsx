@@ -3,7 +3,7 @@ import { useLocalSearchParams, Stack, useRouter } from 'expo-router';
 import { Star, ArrowLeft, Share } from 'lucide-react-native';
 import { useEffect } from 'react';
 import { usePaperDetail, useRecordView } from '../../hooks/usePapers';
-import { useAddBookmark, useRemoveBookmark } from '../../hooks/useBookmarks';
+import { useAddBookmark } from '../../hooks/useBookmarks';
 import { useQueryClient } from '@tanstack/react-query';
 
 export default function PaperDetailScreen() {
@@ -14,7 +14,6 @@ export default function PaperDetailScreen() {
     const { data, isLoading, isError } = usePaperDetail(id ?? '');
     const { mutate: recordViewMutate } = useRecordView();
     const { mutate: addBookmarkMutate } = useAddBookmark();
-    const { mutate: removeBookmarkMutate } = useRemoveBookmark();
 
     const paper = data?.data;
 

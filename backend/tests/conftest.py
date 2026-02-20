@@ -115,7 +115,7 @@ def api_client(
     """FastAPI TestClient。DB と認証をオーバーライド。"""
 
     def _override_db() -> FakeConnection:
-        return fake_conn  # type: ignore[return-value]
+        return fake_conn
 
     def _override_user() -> CurrentUser:
         return fake_user

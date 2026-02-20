@@ -11,8 +11,6 @@ import {
     type PapersQuery,
     type ApiResponse,
     type PaperSummary,
-    type PaperDetail,
-    type Category,
 } from '../lib/api';
 
 export function usePapers(filters: Omit<PapersQuery, 'cursor'> = {}) {

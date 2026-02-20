@@ -117,7 +117,9 @@ def get_stats(
         # 登録日
         cur.execute("SELECT created_at FROM users WHERE id = %s", (user.user_id,))
         user_row = cur.fetchone()
-        member_since = user_row[0] if user_row else None
+        from datetime import datetime, timezone
+
+        member_since = user_row[0] if user_row and user_row[0] else datetime.now(timezone.utc)
 
     stats = UserStats(
         papers_viewed=papers_viewed,

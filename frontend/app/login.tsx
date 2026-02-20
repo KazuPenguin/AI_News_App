@@ -73,7 +73,7 @@ export default function LoginScreen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity className="mt-4">
-                    <Text className="text-center text-blue-600">Don't have an account? Sign up</Text>
+                    <Text className="text-center text-blue-600">Don&apos;t have an account? Sign up</Text>
                 </TouchableOpacity>
             </View>
         </SafeAreaView>
