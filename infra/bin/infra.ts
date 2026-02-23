@@ -17,7 +17,7 @@ const env: cdk.Environment = {
 // --- 1. NetworkStack (依存なし・最初にデプロイ) ---
 const network = new NetworkStack(app, 'NetworkStack', {
   env,
-  description: 'VPC, Subnets, NAT Gateway, Security Groups',
+  description: 'VPC, Subnets, NAT Instance, Security Groups',
 });
 
 // --- 2. DatabaseStack (依存: NetworkStack) ---

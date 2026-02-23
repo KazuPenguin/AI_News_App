@@ -24,6 +24,13 @@ export class NetworkStack extends cdk.Stack {
     // =========================================================================
     // VPC — 10.0.0.0/16, 2 AZ 構成
     // =========================================================================
+
+    // コスト対策: NAT Gateway (~$32/月) → t4g.nano NAT Instance (~$3/月)
+    const natProvider = ec2.NatProvider.instanceV2({
+      instanceType: ec2.InstanceType.of(ec2.InstanceClass.T4G, ec2.InstanceSize.NANO),
+      defaultAllowedTraffic: ec2.NatTrafficDirection.OUTBOUND_ONLY,
+    });
+
     this.vpc = new ec2.Vpc(this, "AiResearchVpc", {
       ipAddresses: ec2.IpAddresses.cidr("10.0.0.0/16"),
       maxAzs: 2,
@@ -39,9 +46,16 @@ export class NetworkStack extends cdk.Stack {
           subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
         },
       ],
-      // コスト対策: 開発環境では NAT Gateway を 1 つに制限 (~$32/月)
       natGateways: 1,
+      natGatewayProvider: natProvider,
     });
+
+    // NAT Instance の SG に VPC 内 (Private Subnet) からの通信を許可
+    natProvider.connections.allowFrom(
+      ec2.Peer.ipv4(this.vpc.vpcCidrBlock),
+      ec2.Port.allTraffic(),
+      "Allow traffic from private subnets",
+    );
 
     // =========================================================================
     // 踏み台 (Bastion Host) — ローカルからの DB マイグレーション/シード用
